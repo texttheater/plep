@@ -1,4 +1,23 @@
-plep
-====
+plep -- grep for Prolog terms
+=============================
 
-grep for Prolog terms
+Requirements
+------------
+
+* SWI-Prolog 5.11 or higher
+* GNU make or similar
+
+Building
+--------
+
+$ make
+
+Usage
+-----
+
+$ ./bin/plep TERM [FILE...]
+
+TERM is a Prolog term given as a string. plep will search the FILEs and print
+out every term that unifies with TERM and is not a subterm of any previously
+printed term.
+
