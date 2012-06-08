@@ -52,13 +52,6 @@ assert_options([Option|Options]) :-
   assert(option(Option)),
   assert_options(Options).
 
-assert_option_if_value_nonvar(Option) :-
-  Option =.. [_|Value],
-  nonvar(Value),
-  !,write('asserting option '), write(Option), nl,
-  assert(option(Option)).
-assert_option_if_value_nonvar(_).
-
 process_positional_arguments([_,TermAtom|Files],Term,Files) :-
   !,
   atom_chars(TermAtom,TermCodes),
