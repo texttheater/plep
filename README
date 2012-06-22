@@ -15,9 +15,18 @@ $ make
 Usage
 -----
 
-$ ./bin/plep TERM [FILE...]
+$ ./bin/plep [OPTIONS] TERM [FILE...]
 
 TERM is a Prolog term given as a string. plep will search the FILEs and print
 out every term that unifies with TERM and is not a subterm of any previously
 printed term.
 
+Options
+-------
+
+    -m FILE
+    --module FILE
+        Use the operator defintions provided by the module in FILE for parsing
+        both TERM and the input files. For parsing non-module files with custom
+        operators, it is recommended to create a module (say myops) that
+        defines all the needed operators.
