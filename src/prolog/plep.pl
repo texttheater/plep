@@ -21,8 +21,10 @@
 
 :- use_module(library(optparse),[opt_parse/5]).
 :- use_module(library(charsio),[read_term_from_chars/3]).
+:- use_module(library(dialect/sicstus),[use_module/3]). % Wat.
 
 :- dynamic option/1.
+:- dynamic operator_module/1.
 
 main :-
   current_prolog_flag(argv,Argv),
@@ -79,16 +81,16 @@ plep_stream(Stream,SearchTerm) :-
   plep_stream_continue(ReadTerm,Stream,SearchTerm).
 
 read_term_options_list([module(Module)]) :-
-  option(module(Module)),
-  nonvar(Module),
+  operator_module(Module),
   !.
 read_term_options_list([]).
 
 use_operator_module :-
-  option(module(Module)),
-  nonvar(Module),
+  option(module(File)),
+  nonvar(File),
   !,
-  use_module(Module).
+  use_module(Module,File,[]),
+  assert(operator_module(Module)).
 use_operator_module.
 
 plep_stream_continue(end_of_file,_,_) :-
