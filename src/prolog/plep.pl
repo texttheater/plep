@@ -41,6 +41,7 @@ main :-
                 Options,
                 PositionalArguments),
   assert_options(Options),
+  use_operator_module,
   process_positional_arguments(PositionalArguments,Term,Files),
   plep(Files,Term),
   halt.
@@ -82,6 +83,13 @@ read_term_options_list([module(Module)]) :-
   nonvar(Module),
   !.
 read_term_options_list([]).
+
+use_operator_module :-
+  option(module(Module)),
+  nonvar(Module),
+  !,
+  use_module(Module).
+use_operator_module.
 
 plep_stream_continue(end_of_file,_,_) :-
   !.
