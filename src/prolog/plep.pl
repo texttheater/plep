@@ -38,7 +38,13 @@ main :-
               type(boolean),
               help('If this option is given, each term will be suffixed by a period so the output can be read in as Prolog source.'),
               shortflags([p]),
-              longflags([period])]],
+              longflags([period])],
+             [opt(encoding),
+              type(atom),
+              meta('ENCODING'),
+              help('The character encoding of the input file, such as latin1 or utf8.'),
+              shortflags([e]),
+              longflags([encoding])]],
                 Argv,
                 Options,
                 PositionalArguments),
@@ -70,7 +76,8 @@ plep([File|Files],Term) :-
   plep(Files,Term).
 
 plep_file(File,Term) :-
-  open(File,read,Stream), % TODO handle file non-existence, maybe by trying to suffix filename with .pl?
+  open_options_list(Options),
+  open(File,read,Stream,Options), % TODO handle file non-existence, maybe by trying to suffix filename with .pl?
   plep_stream(Stream,Term),
   close(Stream).
 
@@ -84,6 +91,11 @@ read_term_options_list([module(Module)]) :-
   operator_module(Module),
   !.
 read_term_options_list([]).
+
+open_options_list([encoding(Encoding)]) :-
+  option(encoding(Encoding)),
+  !.
+open_options_list([]).
 
 use_operator_module :-
   option(module(File)),
