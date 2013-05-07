@@ -1,4 +1,8 @@
-:- module(plep,[main/0]).
+% TODO This shares A LOT of code with plep. Factor all the command-line
+% processing stuff out to a separate module! The trickiest part will be
+% the specific handling of positional arguments.
+
+:- module(pluniq,[main/0]).
 
 :- use_module(library(optparse),[opt_parse/5]).
 :- use_module(library(charsio),[read_term_from_chars/3]).
@@ -7,6 +11,7 @@
 
 :- dynamic option/1.
 :- dynamic operator_module/1.
+:- dynamic current_term/1.
 
 main :-
   current_prolog_flag(argv,Argv),
@@ -32,11 +37,12 @@ main :-
                 PositionalArguments),
   assert_options(Options),
   use_operator_module,
-  process_positional_arguments(PositionalArguments,Term,Files),
+  process_positional_arguments(PositionalArguments,Files),
   read_term_options_list(ReadTermOptions),
   open_options_list(OpenOptions),
   append(ReadTermOptions,OpenOptions,TermprocOptions),
-  process_files(Files,plep_term(Arg,Term),Arg,TermprocOptions),
+  process_files(Files,pluniq_term(Arg),Arg,TermprocOptions),
+  output_current_term_if_any,
   halt.
 main :-
   halt(1).
@@ -46,14 +52,7 @@ assert_options([Option|Options]) :-
   assert(option(Option)),
   assert_options(Options).
 
-process_positional_arguments([_,TermAtom|Files],Term,Files) :-
-  !,
-  atom_chars(TermAtom,TermCodes),
-  read_term_options_list(RTOL),
-  read_term_from_chars(TermCodes,Term,RTOL).
-process_positional_arguments(_,_,_) :-
-  format(user_error,'ERROR: At least one argument is required: TERM [FILE...]~n',[]),
-  fail.
+process_positional_arguments([_|Files],Files).
 
 read_term_options_list([module(Module)]) :-
   operator_module(Module),
@@ -74,24 +73,33 @@ use_operator_module :-
   assert(operator_module(Module)).
 use_operator_module.
 
-% If the read term can unify with the search term, print it, otherwise recurse.
-plep_term(ReadTerm,SearchTerm) :-
-  \+ \+ (ReadTerm = SearchTerm),
+pluniq_term(NewTerm) :-
+  current_term(OldTerm),
+  subsumes_term(OldTerm,NewTerm),
+  !.
+pluniq_term(NewTerm) :-
+  current_term(OldTerm),
+  subsumes_term(NewTerm,OldTerm),
   !,
-  write_term(ReadTerm,[quoted(true)]), % TODO prefix with filename if requested
+  retract(current_term(_)),
+  assert(current_term(NewTerm)).
+pluniq_term(_) :-
+  output_current_term_if_any,
+  fail.
+pluniq_term(NewTerm) :-
+  assert(current_term(NewTerm)).
+
+output_current_term_if_any :-
+  retract(current_term(Term)),
+  !,
+  numbervars(Term,0,_),
+  write_term(Term,[quoted(true),numbervars(true)]),
   write_period_if_requested,
   nl.
-plep_term(ReadTerm,SearchTerm) :-
-  ReadTerm =.. [_|Terms],
-  plep_terms(Terms,SearchTerm).
+output_current_term_if_any.
 
 write_period_if_requested :-
   option(period(true)),
   !,
   write('.').
 write_period_if_requested.
-
-plep_terms([],_).
-plep_terms([Term|Terms],SearchTerm) :-
-  plep_term(Term,SearchTerm),
-  plep_terms(Terms,SearchTerm).
