@@ -3,6 +3,7 @@
 :- use_module(library(optparse),[opt_parse/5]).
 :- use_module(library(charsio),[read_term_from_chars/3]).
 :- use_module(library(dialect/sicstus),[use_module/3]). % Wat.
+:- use_module(termproc,[process_files/4]).
 
 :- dynamic option/1.
 :- dynamic operator_module/1.
@@ -32,7 +33,10 @@ main :-
   assert_options(Options),
   use_operator_module,
   process_positional_arguments(PositionalArguments,Term,Files),
-  plep(Files,Term),
+  read_term_options_list(ReadTermOptions),
+  open_options_list(OpenOptions),
+  append(ReadTermOptions,OpenOptions,TermprocOptions),
+  process_files(Files,plep_term(Arg,Term),Arg,TermprocOptions),
   halt.
 main :-
   halt(1).
@@ -51,23 +55,6 @@ process_positional_arguments(_,_,_) :-
   format(user_error,'ERROR: At least one argument is required: TERM [FILE...]~n',[]),
   fail.
 
-plep([],_).
-plep([File|Files],Term) :-
-  plep_file(File,Term),
-  plep(Files,Term).
-
-plep_file(File,Term) :-
-  open_options_list(Options),
-  open(File,read,Stream,Options), % TODO handle file non-existence, maybe by trying to suffix filename with .pl?
-  plep_stream(Stream,Term),
-  close(Stream).
-
-plep_stream(Stream,SearchTerm) :-
-  read_term_options_list(RTOL),
-  read_term(Stream,ReadTerm,RTOL),
-  plep_term(ReadTerm,SearchTerm),
-  plep_stream_continue(ReadTerm,Stream,SearchTerm).
-
 read_term_options_list([module(Module)]) :-
   operator_module(Module),
   !.
@@ -75,6 +62,7 @@ read_term_options_list([]).
 
 open_options_list([encoding(Encoding)]) :-
   option(encoding(Encoding)),
+  nonvar(Encoding),
   !.
 open_options_list([]).
 
