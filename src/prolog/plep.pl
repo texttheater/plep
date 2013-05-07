@@ -39,6 +39,7 @@ main :-
   process_files(Files,plep_term(Arg,Term),Arg,TermprocOptions),
   halt.
 main :-
+  raise_exception(unexpected_error),
   halt(1).
 
 assert_options([]).
