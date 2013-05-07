@@ -30,3 +30,12 @@ Options
         both TERM and the input files. For parsing non-module files with custom
         operators, it is recommended to create a module (say myops) that
         defines all the needed operators.
+
+    -e ENCODING
+    --encoding ENCODING
+        The character encoding of the input files, such as utf8 or latin1.
+
+    -p true
+    --period true
+        If this option is true, each term will be suffixed by a period so the
+        output can be read in as Prolog source. 
